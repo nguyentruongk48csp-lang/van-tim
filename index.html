@@ -90,6 +90,13 @@ ul{margin:6px 0;padding-left:20px} li{margin:2px 0}
 .inputs label{font-size:13px;color:var(--muted);display:grid;gap:4px;min-width:0}
 .inputs input,.inputs select{width:100%;min-width:0;font:inherit;font-size:16px;-webkit-appearance:none;appearance:none;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
 .inputs select{padding-right:32px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%235d6577' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+.pick{display:grid;gap:12px;margin:8px 0}
+.pkl{font-size:13.5px;color:var(--muted);margin-bottom:5px;font-weight:600}
+.req{color:var(--accent)}
+.pko{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:14.5px;font-weight:600;min-height:40px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;touch-action:manipulation}
+.chip:hover{border-color:var(--accent)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .wk{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;background:#fbfaf8}
 .wk summary{cursor:pointer;font-weight:600;font-size:14px}
 .wkout{font-size:14px;margin-top:6px}
@@ -133,6 +140,7 @@ h2.refh{font-size:19px;margin:30px 0 8px}
   .inputs{grid-template-columns:1fr 1fr;gap:10px}
   .inputs input,.inputs select{font-size:16px;padding:10px 11px;min-height:44px}
   .wk .inputs{grid-template-columns:1fr}
+  .chip{min-height:44px;font-size:15px;padding:9px 15px;flex:1 1 auto}
   .todo{padding-left:18px;font-size:15px}
   .note,.calc,.sugg{font-size:14.5px}
   table{font-size:14px} td{padding:8px 4px}
@@ -196,9 +204,9 @@ const MS={
  etio:{phase:"Bước 1 · Chẩn đoán",type:"choice",title:"Nguyên nhân hẹp van hai lá?",
    help:"Thấp tim là nguyên nhân thường gặp nhất. Hẹp do vôi hoá vòng van (MAC) gặp ở người cao tuổi và được xử trí theo hướng khác.",
    opts:[["Do thấp tim","echo"],["Thoái hoá – vôi hoá vòng van (MAC)","mac_eval"]]},
- echo:{phase:"Bước 2 · Đánh giá siêu âm",type:"gate",title:"Siêu âm tim",help:"Chỉ cần nhập kết quả; MVA bắt buộc.",
+ echo:{phase:"Bước 2 · Đánh giá siêu âm",type:"gate",title:"Siêu âm tim",help:"Chọn kết quả; MVA bắt buộc.",
    items:["Đo MVA bằng planimetry 2D (thêm TTE 3D / TOE nếu cần)","Đo chênh áp trung bình qua van hai lá","Ước tính áp lực tâm thu ĐMP (PAPs)","Đánh giá các van khác, đặc biệt hở ba lá thứ phát","Đánh giá dày/vôi hoá lá van, dính mép van, bộ máy dưới van"],
-   inputs:[{k:"mva",l:"MVA (cm²)",req:1},{k:"grad",l:"Chênh áp TB (mmHg)"},{k:"paps",l:"PAPs (mmHg)"}],
+   inputs:[{k:"mva",l:"MVA",req:1,o:[["≤ 1,5 cm²",1.2],["1,5–2,0 cm²",1.8],["> 2,0 cm²",2.5]]},{k:"grad",l:"Chênh áp trung bình",o:[["< 10 mmHg",8],["≥ 10 mmHg",12]]},{k:"paps",l:"PAPs",o:[["≤ 50 mmHg",40],["> 50 mmHg",55]]}],
    next:()=>V("mva")<=1.5?"rhythm":"mild"},
  mild:{phase:"Bước 3 · Phân loại",type:"choice",title:"MVA > 1,5 cm²: không phải hẹp nặng trên lâm sàng",
    help:"Bệnh nhân có triệu chứng mà không giải thích được bằng nguyên nhân khác, và giải phẫu van thuận lợi không?",
@@ -314,10 +322,11 @@ const MR={
  R_acute:{type:"result",k:"SURG",title:"Can thiệp khẩn",cls:["cIIb","Mục 9.1.4"],
    body:`<ul><li>Hở hai lá nguyên phát cấp dung nạp huyết động kém: chỉ định <b>phẫu thuật hoặc can thiệp qua ống thông khẩn</b>.</li><li>Đứt cơ nhú hoặc viêm nội tâm mạc: thường phải thay van.</li><li>Đứt dây chằng do thoái hoá: sửa van bằng phẫu thuật, hoặc TEER ở bệnh nhân nguy cơ cao.</li><li>Cầu nối: nitroprusside (nếu không tụt huyết áp), lợi tiểu, thuốc tăng co bóp; bóng đối xung trong trường hợp đặc biệt.</li><li>Hở hai lá thứ phát cấp sau nhồi máu cơ tim: ngày càng có bằng chứng cho M-TEER.</li></ul>`,next:"END"},
  /* --- primary --- */
- echo_p:{phase:"Bước 2 · Đánh giá",type:"gate",title:"Siêu âm tim – hở hai lá nguyên phát",help:"Nhập kết quả; LVEF và LVESD bắt buộc.",
+ echo_p:{phase:"Bước 2 · Đánh giá",type:"gate",title:"Siêu âm tim – hở hai lá nguyên phát",help:"Chọn kết quả; LVEF và LVESD bắt buộc.",
    items:["Hình thái van: sa/lật lá, vôi hoá, tách rời vòng van (MAD)","Mức độ hở tích hợp: lỗ hở rộng, dòng trung tâm lớn; VC ≥ 7 mm (≥ 8 mm hai bình diện); đảo ngược dòng tĩnh mạch phổi; E > 1,2 m/s; VTI hai lá/LVOT > 1,4; EROA ≥ 40 mm² (≥ 30 mm² nếu lỗ hở hình elip); RVol ≥ 60 mL; RF ≥ 50%","Kích thước, chức năng thất trái, nhĩ trái; thất phải, hở ba lá, PAPs","TOE (3D) khi cần xác nhận mức độ hoặc dự kiến sửa van; CMR nếu không thống nhất","Siêu âm gắng sức nếu triệu chứng không tương xứng"],
-   inputs:[{k:"lvef",l:"LVEF (%)",req:1},{k:"lvesd",l:"LVESD (mm)",req:1},{k:"lvesdi",l:"LVESDi (mm/m²)"},{k:"lavi",l:"LAVI (mL/m²)"},{k:"lad",l:"Đường kính nhĩ trái (mm)"},{k:"spap",l:"PAPs (mmHg)"},
-     {k:"af",l:"Rung nhĩ",sel:["","Không","Có"]},{k:"tr",l:"Hở ba lá thứ phát ≥ vừa",sel:["","Không","Có"]}],
+   inputs:[{k:"lvef",l:"LVEF",req:1,o:[["> 60%",65],["≤ 60%",55]]},{k:"lvesd",l:"LVESD",req:1,o:[["< 40 mm",35],["≥ 40 mm",45]]},{k:"lvesdi",l:"LVESDi",o:[["< 20 mm/m²",18],["≥ 20 mm/m²",22]]},
+     {k:"lavi",l:"Nhĩ trái giãn đáng kể (LAVI ≥ 60 mL/m² hoặc ≥ 55 mm)",o:[["Không",50],["Có",65]]},{k:"spap",l:"PAPs lúc nghỉ",o:[["≤ 50 mmHg",40],["> 50 mmHg",55]]},
+     {k:"af",l:"Rung nhĩ",o:[["Không","Không"],["Có","Có"]]},{k:"tr",l:"Hở ba lá thứ phát ≥ vừa",o:[["Không","Không"],["Có","Có"]]}],
    next:"sev_p"},
  sev_p:{phase:"Bước 3 · Mức độ",type:"choice",title:"Hở hai lá nguyên phát nặng?",help:"Theo đánh giá tích hợp các tiêu chí ở bước trên.",
    opts:[["Nặng","sx_p"],["Không nặng (vừa / nhẹ)","R_mod"]]},
@@ -328,7 +337,7 @@ const MR={
  asx_p:{phase:"Không triệu chứng",type:"auto",title:"Đối chiếu tiêu chí can thiệp (Hình 11)",
    calc:()=>{
      const lv=V("lvef")<=60||V("lvesd")>=40||V("lvesdi")>=20;
-     const af=st.v.af==="Có",ph=V("spap")>50,la=V("lavi")>=60||V("lad")>=55,tr=st.v.tr==="Có";
+     const af=st.v.af==="Có",ph=V("spap")>50,la=V("lavi")>=60,tr=st.v.tr==="Có";
      const n=[af,ph,la,tr].filter(Boolean).length;
      let html=`<b>Rối loạn chức năng / giãn thất trái</b><ul>${tick(V("lvef")<=60,"LVEF ≤ 60%")}${tick(V("lvesd")>=40,"LVESD ≥ 40 mm")}${tick(V("lvesdi")>=20,"LVESDi ≥ 20 mm/m²")}</ul>`;
      html+=`<b>Yếu tố tiên lượng xấu (${n}/4)</b><ul>${tick(af,"Rung nhĩ")}${tick(ph,"PAPs lúc nghỉ > 50 mmHg")}${tick(la,"LAVI ≥ 60 mL/m² hoặc nhĩ trái ≥ 55 mm")}${tick(tr,"Hở ba lá thứ phát ≥ vừa")}</ul>`;
@@ -361,10 +370,8 @@ const MR={
    opts:[["Có","t7"],["Không","R_med"]]},
  R_med:{type:"result",k:"FU",title:"Điều trị nội khoa và theo dõi",cls:["cIIb","Mục 9.2.4.3"],body:"Không triệu chứng và/hoặc hở vừa hoặc thay đổi: khám lâm sàng và siêu âm ít nhất <b>2 lần mỗi năm</b>, phối hợp chuyên gia suy tim.",next:"END"},
  t7:{phase:"Bước 5 · Bảng 7",type:"decideAll",title:"Đủ tiêu chí lâm sàng và siêu âm (Bảng 7)?",
-   help:"Tích các tiêu chí bệnh nhân đạt. Đủ tất cả → chuyển bước. Các mục có số đo được tự tích theo kết quả nhập.",
+   help:"Tích các tiêu chí bệnh nhân đạt. Đủ tất cả → chuyển bước.",
    items:["Giải phẫu phù hợp M-TEER","NYHA ≥ II","LVEF 20–50%","LVESD ≤ 70 mm","≥ 1 lần nhập viện vì suy tim trong năm qua, hoặc BNP ≥ 300 pg/mL / NT-proBNP ≥ 1000 pg/mL","PAPs ≤ 70 mmHg","Không rối loạn chức năng thất phải nặng","Không suy tim giai đoạn D / tiến triển","Không bệnh mạch vành cần tái thông","Không bệnh van ĐMC và/hoặc van ba lá nặng","Không bệnh cơ tim phì đại, hạn chế hoặc thâm nhiễm"],
-   inputs:[{k:"lvef",l:"LVEF (%)"},{k:"lvesd",l:"LVESD (mm)"},{k:"spap",l:"PAPs (mmHg)"}],
-   auto:()=>{const a=[];if(V("lvef")>=20&&V("lvef")<=50)a.push(2);if(V("lvesd")<=70)a.push(3);if(V("spap")<=70)a.push(5);return a},
    noneLabel:"Không đủ tiêu chí",yes:"R_v_teer",no:"adv"},
  adv:{phase:"Bước 6 · Không đủ tiêu chí",type:"choice",title:"Suy tim tiến triển?",opts:[["Có","R_v_lvad"],["Không","R_v_iib"]]},
  R_v_teer:{type:"result",k:"PMC",title:"TEER",cls:["cI","I · A"],body:"Giảm nhập viện vì suy tim và cải thiện chất lượng sống ở bệnh nhân huyết động ổn định, có triệu chứng, LVEF &lt; 50%, hở hai lá thứ phát do thất nặng dai dẳng dù đã tối ưu GDMT và CRT (nếu có chỉ định).",next:"post_v"},
@@ -407,9 +414,9 @@ const MR={
 const AS={
  title:"Hẹp van động mạch chủ", sub:"Mục 8 · Hình 6, 7 · Bảng khuyến cáo 4, 5", start:"echo",
  S:{
- echo:{phase:"Bước 1 · Đánh giá",type:"gate",title:"Siêu âm tim",help:"Nhập kết quả; Vmax, chênh áp TB, AVA, LVEF bắt buộc. SVi cần khi chênh áp thấp.",
+ echo:{phase:"Bước 1 · Đánh giá",type:"gate",title:"Siêu âm tim",help:"Chọn kết quả; Vmax, chênh áp TB, AVA, LVEF bắt buộc. SVi cần khi chênh áp thấp.",
    items:["Đo Vmax, chênh áp trung bình (thông số vững nhất), AVA (phương trình liên tục)","Loại trừ sai số đo: kiểm tra đường kính LVOT, Doppler nhiều cửa sổ","SVi để phân loại lưu lượng (ngưỡng 35 mL/m²)","Hình thái van (3 lá / 2 lá), ĐMC lên, bệnh van khác, phì đại thất trái","Bệnh kèm: HFpEF, amyloidosis, bệnh cơ tim phì đại"],
-   inputs:[{k:"vmax",l:"Vmax (m/s)",req:1},{k:"pg",l:"Chênh áp TB (mmHg)",req:1},{k:"ava",l:"AVA (cm²)",req:1},{k:"lvef",l:"LVEF (%)",req:1},{k:"svi",l:"SVi (mL/m²)"}],
+   inputs:[{k:"vmax",l:"Vmax",req:1,o:[["< 4 m/s",3.5],["4–5 m/s",4.5],["> 5 m/s",5.2]]},{k:"pg",l:"Chênh áp trung bình",req:1,o:[["< 40 mmHg",30],["40–59 mmHg",50],["≥ 60 mmHg",65]]},{k:"ava",l:"AVA",req:1,o:[["≤ 1,0 cm²",0.8],["> 1,0 cm²",1.2]]},{k:"lvef",l:"LVEF",req:1,o:[["< 50%",40],["50–54%",52],["≥ 55%",60]]},{k:"svi",l:"SVi",o:[["≤ 35 mL/m²",30],["> 35 mL/m²",40]]}],
    next:"grade"},
  grade:{phase:"Bước 2 · Hình 6",type:"auto",title:"Phân loại hẹp chủ",
    calc:()=>{
@@ -417,7 +424,7 @@ const AS={
      if(hg&&ava1){st.g="HG";return{html:`<b>Hẹp chủ nặng chênh áp cao</b> (Vmax ≥ 4 m/s hoặc chênh áp TB ≥ 40 mmHg, AVA ≤ 1 cm²): nặng bất kể chức năng thất trái và lưu lượng.`,next:"sx"}}
      if(hg&&!ava1){st.g="HGd";return{html:`<b>Chênh áp cao không tương xứng</b> (AVA &gt; 1 cm²): được coi là nặng nếu không do tình trạng tăng lưu lượng có thể đảo ngược.`,next:"highflow"}}
      if(!ava1){st.g="NS";return{html:`AVA &gt; 1 cm², chênh áp thấp: <b>hẹp chủ chưa nặng</b>.`,next:"R_ns"}}
-     if(!has("svi"))return{html:`AVA ≤ 1 cm² nhưng chênh áp thấp. <b>Nhập SVi</b> ở bước siêu âm để phân loại lưu lượng.`,next:null};
+     if(!has("svi"))return{html:`AVA ≤ 1 cm² nhưng chênh áp thấp. <b>Chọn SVi</b> ở bước siêu âm để phân loại lưu lượng.`,next:null};
      if(V("svi")>35){st.g="NF";return{html:`<b>Lưu lượng bình thường, chênh áp thấp</b> (SVi &gt; 35 mL/m²): thường là hẹp vừa; hẹp nặng ít khả năng. Kiểm tra nhịp chậm, tăng huyết áp chưa kiểm soát.`,next:"nf"}}
      if(V("lvef")<50){st.g="LFr";return{html:`<b>Lưu lượng thấp, chênh áp thấp, LVEF giảm</b> (SVi ≤ 35, LVEF &lt; 50%).`,next:"lfr"}}
      st.g="LFp";return{html:`<b>Lưu lượng thấp, chênh áp thấp, LVEF bảo tồn</b> (SVi ≤ 35, LVEF ≥ 50%). Loại trừ sai số đo, huyết áp chưa kiểm soát.`,next:"lfp"};
@@ -442,7 +449,7 @@ const AS={
    body:()=>({HG:"Hẹp chủ nặng chênh áp cao có triệu chứng.",HGd:"Hẹp chủ nặng (chênh áp cao, không do tăng lưu lượng) có triệu chứng.",LFr:"Lưu lượng thấp, chênh áp thấp, LVEF giảm, đã xác nhận hẹp nặng.",LFp:"Lưu lượng thấp, chênh áp thấp, LVEF bảo tồn, đã xác nhận cẩn thận hẹp nặng: <b>nên cân nhắc</b> can thiệp.",NF:"Đánh giá đa phương thức xác nhận hẹp nặng."}[st.g]||"")+
      `<div class="note">Can thiệp sớm nếu kỳ vọng sống &gt; 1 năm. Bắt đầu thuốc hoặc cải thiện triệu chứng tạm thời không được làm chậm can thiệp. Huyết động không ổn định: có thể nong van bằng bóng làm cầu nối ${B("cIIb","IIb · C")}.</div>`,next:"mode"},
  ef50:{phase:"Không triệu chứng",type:"choice",title:"LVEF < 50% không do nguyên nhân khác?",
-   help:()=>has("lvef")?`LVEF đã nhập: <b>${st.v.lvef}%</b>.`:"",opts:[["Có","R_ef50"],["Không","adv"]]},
+   help:()=>has("lvef")?`LVEF đã chọn: <b>${st.lab.lvef}</b>.`:"",opts:[["Có","R_ef50"],["Không","adv"]]},
  R_ef50:{type:"result",k:"PMC",title:"Chỉ định can thiệp",cls:["cI","I · B"],body:"Hẹp chủ nặng không triệu chứng, LVEF &lt; 50% không do nguyên nhân khác.",next:"mode"},
  adv:{phase:"Không triệu chứng",type:"decide",title:"Có ≥ 1 yếu tố sau?",help:"Tích 1 mục là đủ. Một số mục được tự tích theo số đo.",noneLabel:"Không có yếu tố nào",
    items:["Hẹp chủ chênh áp cao","Rất nặng: chênh áp TB ≥ 60 mmHg hoặc Vmax > 5 m/s","Van vôi hoá nặng (AVCS > 2000 nam / > 1200 nữ) và Vmax tăng ≥ 0,3 m/s/năm","BNP/NT-proBNP tăng > 3 lần giới hạn theo tuổi, giới (đo lặp lại, không do nguyên nhân khác)","LVEF < 55% do hẹp chủ","Nghiệm pháp gắng sức: huyết áp giảm kéo dài > 20 mmHg"],
@@ -501,12 +508,12 @@ const AR={
  S:{
  acute:{phase:"Bước 1",type:"choice",title:"Hở chủ cấp hay mạn?",opts:[["Mạn tính","echo"],["Cấp (viêm nội tâm mạc, bóc tách ĐMC)","R_acute"]]},
  R_acute:{type:"result",k:"SURG",title:"Phẫu thuật ngay",cls:["cIIb","Mục 7.4"],body:"Hở chủ cấp nặng thường cần phẫu thuật ngay, tuỳ nguyên nhân (viêm nội tâm mạc, bóc tách ĐMC tự phát, chấn thương hoặc do thủ thuật). Phẫu thuật là lựa chọn ưu tiên; tạo nhịp nhanh tạm thời có thể cải thiện huyết động trong lúc chờ.",next:"END"},
- echo:{phase:"Bước 2 · Hình 4",type:"gate",title:"Đánh giá hở chủ",help:"Nhập kết quả; LVEF và LVESD bắt buộc. Ghi nhận huyết áp lúc đo (huyết áp cao làm ước tính quá mức).",
+ echo:{phase:"Bước 2 · Hình 4",type:"gate",title:"Đánh giá hở chủ",help:"Chọn kết quả; LVEF và LVESD bắt buộc. Ghi nhận huyết áp lúc đo (huyết áp cao làm ước tính quá mức).",
    items:["Mức độ tích hợp: lá van bất thường, lật lá, khe hở lớn; VC &gt; 6 mm; PHT &lt; 200 ms; dòng trung tâm ≥ 65% LVOT; dòng ngược toàn tâm trương ĐMC xuống (EDV ≥ 20 cm/s); EROA ≥ 30 mm²; RVol ≥ 60 mL/nhát; RF &gt; 50% (siêu âm) / &gt; 40% (CMR)","Cơ chế: sa, co rút, thủng lá van; giãn ĐMC làm lá van không áp","Thất trái: LVEF, LVESD, LVESDi, LVESVi (3D hoặc CMR nếu ở ngưỡng)","Đường kính ĐMC ở mọi mức (vòng van, xoang, nối xoang–ống, ĐMC lên); CT/CMR nếu giãn","Hình thái van (van hai lá, độ đối xứng) để đánh giá khả năng sửa"],
-   inputs:[{k:"lvef",l:"LVEF (%)",req:1},{k:"lvesd",l:"LVESD (mm)",req:1},{k:"lvesdi",l:"LVESDi (mm/m²)"},{k:"lvesvi",l:"LVESVi (mL/m²)"},{k:"ao",l:"ĐK ĐMC tối đa (mm)"}],
+   inputs:[{k:"lvef",l:"LVEF",req:1,o:[["> 55%",60],["51–55%",53],["≤ 50%",45]]},{k:"lvesd",l:"LVESD",req:1,o:[["≤ 50 mm",45],["> 50 mm",55]]},{k:"lvesdi",l:"LVESDi",o:[["≤ 22 mm/m²",20],["22–25 mm/m²",23.5],["> 25 mm/m²",27]]},{k:"lvesvi",l:"LVESVi",o:[["≤ 45 mL/m²",40],["> 45 mL/m²",50]]},{k:"ao",l:"Đường kính ĐMC tối đa",o:[["< 45 mm",40],["45–49 mm",47],["50–54 mm",52],["≥ 55 mm",57]]}],
    next:"root"},
  root:{phase:"Bước 3 · Hình 5",type:"choice",title:"Giãn gốc ĐMC có chỉ định phẫu thuật?",
-   help:()=>`Theo khuyến cáo bệnh ĐMC 2024: phẫu thuật khi đường kính ≥ 55 mm; ≥ 50 mm ở bệnh nhân chọn lọc nguy cơ thấp có yếu tố nguy cơ, tại trung tâm có kinh nghiệm.${has("ao")?` Đường kính đã nhập: <b>${st.v.ao} mm</b>.`:""}`,
+   help:()=>`Theo khuyến cáo bệnh ĐMC 2024: phẫu thuật khi đường kính ≥ 55 mm; ≥ 50 mm ở bệnh nhân chọn lọc nguy cơ thấp có yếu tố nguy cơ, tại trung tâm có kinh nghiệm.${has("ao")?` Đường kính đã chọn: <b>${st.lab.ao}</b>.`:""}`,
    opts:[["Có","sigar"],["Không","sev"]]},
  sigar:{phase:"Giãn gốc ĐMC",type:"choice",title:"Có hở chủ đáng kể?",opts:[["Không","R_vsarr"],["Có","tissue_root"]]},
  tissue_root:{phase:"Giãn gốc ĐMC",type:"choice",title:"Mô lá van tốt, nhóm phẫu thuật có kinh nghiệm, bệnh nhân trẻ?",opts:[["Có","R_vsarr_rep"],["Không","R_bentall"]]},
@@ -535,7 +542,7 @@ const AR={
  R_repair:{type:"result",k:"SURG",title:"Sửa van ĐMC",cls:["cIIa","IIa · B"],body:"Bệnh nhân chọn lọc, tại trung tâm có kinh nghiệm, khi kỳ vọng kết quả bền vững. Phẫu thuật Ross là lựa chọn thay thế ở người trẻ chọn lọc.",next:"presurg"},
  R_savr:{type:"result",k:"SURG",title:"Thay van ĐMC (SAVR)",cls:["cI","Hình 5"],body:"Thay van vẫn là phương pháp phẫu thuật chuẩn trong đa số trường hợp hở chủ.",next:"presurg"},
  presurg:{phase:"Chuẩn bị phẫu thuật",type:"gate",title:"Lập kế hoạch phẫu thuật",
-   items:[()=>`Thay gốc ĐMC hoặc ĐMC lên cùng lúc nếu đường kính tối đa ≥ 45 mm và nguy cơ thấp ${B("cIIa","IIa · C")}${V("ao")>=45?` – <b>đường kính ${st.v.ao} mm: cần xem xét</b>`:""}`,"Chọn van: van cơ học ưu tiên < 60 tuổi, van sinh học ưu tiên > 65 tuổi","Mổ bắc cầu hoặc phẫu thuật van khác cùng lúc nếu có chỉ định",`Hở chủ nặng ở bệnh nhân mổ bắc cầu hoặc phẫu thuật ĐMC lên: phẫu thuật van cùng lúc ${B("cI","I · C")}`],next:"post"},
+   items:[()=>`Thay gốc ĐMC hoặc ĐMC lên cùng lúc nếu đường kính tối đa ≥ 45 mm và nguy cơ thấp ${B("cIIa","IIa · C")}${V("ao")>=45?` – <b>đường kính ${st.lab.ao}: cần xem xét</b>`:""}`,"Chọn van: van cơ học ưu tiên < 60 tuổi, van sinh học ưu tiên > 65 tuổi","Mổ bắc cầu hoặc phẫu thuật van khác cùng lúc nếu có chỉ định",`Hở chủ nặng ở bệnh nhân mổ bắc cầu hoặc phẫu thuật ĐMC lên: phẫu thuật van cùng lúc ${B("cI","I · C")}`],next:"post"},
  post:{type:"result",k:"FU",title:"Theo dõi sau phẫu thuật",cls:["cIIb","Mục 7.3, 7.5"],body:"<ul><li>Chẹn beta phối hợp ƯCMC/chẹn thụ thể sau mổ nếu có chỉ định (suy tim tâm thu, kiểm soát tần số).</li><li>Hội chứng Marfan, bệnh mô liên kết: theo dõi suốt đời tại trung tâm chuyên sâu.</li><li>Tầm soát người thân bậc 1 nếu bệnh mô liên kết hoặc van ĐMC hai lá.</li></ul>",next:"END"}
  },
  refs:`<details class="ref"><summary>Bảng khuyến cáo 3: hở chủ nặng</summary><table>
@@ -552,13 +559,13 @@ const AR={
 const PROTOS={"hep-hai-la":MS,"ho-hai-la":MR,"hep-chu":AS,"ho-chu":AR};
 const END={type:"end"};
 const STATES={};
-const fresh=()=>({ans:{},chk:{},v:{},wk:[0,0,0,0],wkOpen:false,g:null});
+const fresh=()=>({ans:{},chk:{},v:{},lab:{},wk:[0,0,0,0],wkOpen:false,g:null});
 
 /* ---------------- ENGINE ---------------- */
 const path=document.getElementById('path');
 const step=id=>id==="END"?END:S[id];
 const allItems=s=>s.groups?s.groups.flatMap(g=>g[1]):(s.items||[]);
-function gateOK(s){return !(s.inputs||[]).some(f=>f.req&&!has(f.k)&&!(f.sel&&st.v[f.k]))}
+function gateOK(s){return !(s.inputs||[]).some(f=>f.req&&(st.v[f.k]===undefined||st.v[f.k]===""))}
 function nextOf(id){
   const s=step(id),a=st.ans[id];
   if(s.type==="choice")return a===undefined?null:s.opts[a][1];
@@ -578,9 +585,7 @@ function checksHTML(id,items,groups){
   return h+"</div>";
 }
 function inputsHTML(list){
-  return `<div class="inputs">${list.map(f=>f.sel
-    ?`<label>${f.l}${f.req?" *":""}<select data-v="${f.k}">${f.sel.map(o=>`<option ${st.v[f.k]===o?"selected":""}>${o}</option>`).join("")}</select></label>`
-    :`<label>${f.l}${f.req?" *":""}<input type="text" inputmode="decimal" data-v="${f.k}" value="${st.v[f.k]??""}"></label>`).join("")}</div>`;
+  return `<div class="pick">${list.map(f=>`<div class="pk"><div class="pkl">${f.l}${f.req?' <span class="req">*</span>':""}</div><div class="pko">${f.o.map(([lab,v])=>`<button type="button" class="chip ${String(st.v[f.k])===String(v)?"on":""}" data-k="${f.k}" data-val="${v}" data-lab="${lab}">${lab}</button>`).join("")}</div></div>`).join("")}</div>`;
 }
 function wilkinsHTML(id){
   const L=[["Di động lá van",["Di động tốt, chỉ hạn chế đầu lá","Giữa và chân lá di động bình thường","Còn di động ra trước tâm trương, chủ yếu từ chân","Không/ít di động"]],
@@ -606,7 +611,7 @@ function card(id,idx,isCur){
   if(s.type==="gate"){
     if(s.inputs)h+=`<div class="phase" style="margin-top:4px">Việc cần làm</div>`;
     h+=`<ul class="todo">${s.items.map(t=>`<li>${val(t)}</li>`).join("")}</ul>`;
-    if(s.inputs){h+=`<div class="phase" style="margin-top:10px">Kết quả</div>`+inputsHTML(s.inputs);if(!done)h+=`<div class="gate">Nhập các ô có dấu * để tiếp tục.</div>`}
+    if(s.inputs){h+=`<div class="phase" style="margin-top:10px">Kết quả</div>`+inputsHTML(s.inputs);if(!done)h+=`<div class="gate">Chọn các mục có dấu * để tiếp tục.</div>`}
   }
   if(s.type==="auto"){h+=`<div class="calc">${s.calc().html}</div>`}
   if(s.type==="decide"){
@@ -617,7 +622,6 @@ function card(id,idx,isCur){
     else h+=`<div class="opts"><button class="btn ${st.ans[id]===false?"sel":""}" data-id="${id}" data-none="1">${s.noneLabel||"Không có mục nào"}</button></div>`;
   }
   if(s.type==="decideAll"){
-    if(s.inputs)h+=inputsHTML(s.inputs);
     h+=checksHTML(id,s.items);
     const k=(st.chk[id]||[]).length,n=s.items.length;
     if(k===n)h+=`<div class="sugg">Đủ <b>${n}/${n}</b> tiêu chí → chuyển sang bước tiếp theo.</div>`;
@@ -642,6 +646,9 @@ function clearAuto(){Object.keys(S).forEach(id=>{const s=S[id];if(!s.auto||!st.c
   const c=st.chk[id].filter(i=>!prev.includes(i));now.forEach(i=>{if(!c.includes(i))c.push(i)});st.chk[id]=c;st.ap[id]=now;
   if(s.type==="decide"&&c.length)delete st.ans[id];})}
 path.addEventListener('click',e=>{
+  const c=e.target.closest('button[data-k]');
+  if(c){const k=c.dataset.k;if(String(st.v[k])===c.dataset.val){delete st.v[k];delete st.lab[k]}else{st.v[k]=c.dataset.val;st.lab[k]=c.dataset.lab}
+    clearAuto();noScroll=true;render();noScroll=false;return}
   const b=e.target.closest('button[data-id]');if(!b)return;
   const id=b.dataset.id;
   if(b.dataset.o!==undefined)st.ans[id]=+b.dataset.o;
